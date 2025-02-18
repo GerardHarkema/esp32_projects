@@ -1,0 +1,1 @@
+[Device documentation](https://github.com/01Space/ESP32-C3-0.42LCD)
