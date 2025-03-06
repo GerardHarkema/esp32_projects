@@ -488,8 +488,14 @@ static void config_camera() {
     ss->set_hmirror(ss, 0);        // 0 = disable , 1 = enable
   }
 
+    ss->set_hmirror(ss, 1);        // 0 = disable , 1 = enable
+    ss->set_vflip(ss, 1);           // 0 = disable , 1 = enable
+
+
+
   ss->set_brightness(ss, 1);  //up the blightness just a bit
   ss->set_saturation(ss, -2); //lower the saturation
+
 
   int x = 0;
   delay(500);

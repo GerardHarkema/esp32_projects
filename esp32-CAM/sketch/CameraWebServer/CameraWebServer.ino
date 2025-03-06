@@ -1,6 +1,13 @@
 #include "esp_camera.h"
 #include <WiFi.h>
 
+//#define WIFI_WEB_CONFIGURATOR
+
+
+#ifdef WIFI_WEB_CONFIGURATOR
+#include "wifi_network_config.h"
+#endif
+
 //
 // WARNING!!! PSRAM IC required for UXGA resolution and high JPEG quality
 //            Ensure ESP32 Wrover Module or other board with PSRAM is selected
@@ -36,16 +43,35 @@
 // ===========================
 // Enter your WiFi credentials
 // ===========================
-const char *ssid = "BirdsBoven";
+
+#ifdef WIFI_WEB_CONFIGURATOR
+NETWORK_CONFIG networkConfig;
+bool wifiUp;
+#else
+const char *ssid = "Birds";
 const char *password = "Highway12!";
+#endif
 
 void startCameraServer();
 void setupLedFlash(int pin);
+
+
 
 void setup() {
   Serial.begin(115200);
   Serial.setDebugOutput(true);
   Serial.println();
+
+#ifdef WIFI_WEB_CONFIGURATOR
+  wifiUp = configureNetwork(false, &networkConfig);
+  if(!wifiUp){
+    Serial.print("No wifi network");
+    while(1){
+      delay(10);
+    };
+
+  }
+#endif
 
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -133,7 +159,12 @@ void setup() {
   setupLedFlash(LED_GPIO_NUM);
 #endif
 
+#ifdef WIFI_WEB_CONFIGURATOR
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(networkConfig.ssid, networkConfig.password);
+#else
   WiFi.begin(ssid, password);
+#endif
   WiFi.setSleep(false);
 
   Serial.print("WiFi connecting");

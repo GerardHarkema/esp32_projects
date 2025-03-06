@@ -1,4 +1,5 @@
 
+#if 0
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
@@ -120,7 +121,7 @@ NETWORK_CONFIG network_config;
 
 bool configureNetwork(bool forceConfigure, NETWORK_CONFIG *networkConfig) {
 
-
+  delay(10000);
   initLittleFS();
 
   // detect webserver files
@@ -195,4 +196,4 @@ bool configureNetwork(bool forceConfigure, NETWORK_CONFIG *networkConfig) {
   }
   return false;
 }
-
+#endif
