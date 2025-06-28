@@ -49,45 +49,45 @@ void blinky(void *pvParameter)
 #define TASK_NAME_LEN 16
 char ptrTaskList[1024] = {0}; // Buffer to hold the task list
 
+void print_menu()
+{
+    printf("******************************************\n");
+    printf("Press 't' --> task-stats: Displays a table showing the state of each FreeRTOS task\n");
+    printf("Press 'r' --> run-time-stats: Displays a table showing how much processing time each FreeRTOS task has used\n");
+    printf("******************************************\n");
+}
+
 void monitor_task(void *pvParameter)
 {
+    print_menu();
     while(1){
-#if 0
-        // Get the number of tasks in the system
-        UBaseType_t numTasks = uxTaskGetNumberOfTasks();
-
-        // Allocate memory for the task status array
-        TaskStatus_t *taskStatusArray = (TaskStatus_t *)pvPortMalloc(numTasks * sizeof(TaskStatus_t));
-
-        // Get the task status array
-        UBaseType_t numTasksUpdated = uxTaskGetSystemState(taskStatusArray, numTasks, NULL);
-
-        printf("Number of tasks: %u\n", numTasksUpdated);
-
-        // Iterate through the task status array
-        for (UBaseType_t i = 0; i < numTasksUpdated; i++)
+        char c = getchar();
+        switch (c)
         {
-            TaskStatus_t taskStatus = taskStatusArray[i];
-            printf("Task Name: %s, State: %d, Priority: %u, Run Time Counter: %lu\n",
-                   taskStatus.pcTaskName,
-                   taskStatus.eCurrentState,
-                   taskStatus.uxCurrentPriority,
-                   taskStatus.ulRunTimeCounter);
-
-
+        case 't':
+            vTaskList(ptrTaskList);
+            printf("******************************************\n");
+            printf("Task          State   Prio    Stack    Num\n"); 
+            printf("******************************************\n");
+            printf(ptrTaskList);
+            printf("******************************************\n");
+            print_menu();
+            break;
+        case 'r':
+            vTaskGetRunTimeStats(ptrTaskList);
+            printf("******************************************\n");
+            printf("Task            Abs Time(ms)    Time(ms)\n");
+            printf("******************************************\n");
+            printf(ptrTaskList);
+            printf("******************************************\n");
+            print_menu();
+            break;
+        case 0x0a: // Enter key
+            print_menu();
+        break;
+        default:
+            break;
         }
-        // Free the memory allocated for the task status array
-        vPortFree(taskStatusArray);
-
-#else
-        vTaskList(ptrTaskList);
-        printf("******************************************\n");
-        printf("Task          State   Prio    Stack    Num\n"); 
-        printf("******************************************\n");
-        printf(ptrTaskList);
-        printf("******************************************\n");
-
-#endif    
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
@@ -97,4 +97,9 @@ void app_main()
     xTaskCreate(&hello_task, "hello_task", 2048, NULL, 5, NULL);
     xTaskCreate(&blinky, "blinky", 2048,NULL,5,NULL );
     xTaskCreate(&monitor_task, "monitor_task", 2048,NULL,5,NULL );
+    while(1)
+    {
+        // The main task does nothing, just waits
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
 }
