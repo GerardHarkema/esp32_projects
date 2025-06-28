@@ -9,6 +9,15 @@
 #define BLINK_GPIO 2
 
 
+/*
+set the following in sdkconfig.[environment, see plaformio.ini]:
+
+CONFIG_FREERTOS_GENERATE_RUN_TIME_STATS=y
+CONFIG_FREERTOS_USE_STATS_FORMATTING_FUNCTIONS=y
+CONFIG_FREERTOS_USE_TRACE_FACILITY=y
+*/
+
+
 void hello_task(void *pvParameter)
 {
     int count = 0;
