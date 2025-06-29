@@ -1,4 +1,20 @@
-// This code is for an ESP-IDF project using FreeRTOS to create three tasks:
+/*
+* This project file the use of FreeRTOS tasks and command console for monitoring task states and run-time statistics.
+* It includes a simple command console that allows users to view task states and run-time statistics.   
+* This file creates a simple task that prints "Hello world" every 2 seconds.
+* The command console allows users to interact with the system by entering commands.
+* The task list and run-time statistics can be viewed by entering 't' and 'r' respectively.
+* The task list shows the state of each FreeRTOS task, including its name, state, priority, stack size, and number of tasks.
+* The run-time statistics show how much processing time each FreeRTOS task has used, including the absolute time and the time in milliseconds.
+* The command console is implemented in the CommandConsole library, and the heartbeat task is implemented in the Hartbeat library.
+* The GPIO pin for the heartbeat LED can be configured using the HARTBEAT_LED_PIN macro, which defaults to GPIO 2 but can be overridden by build flags.
+* The FreeRTOS configuration options for generating run-time statistics and using the trace facility are set in the sdkconfig file.
+* Author: Gerard Harkema
+* Date: 2023-10-01
+* License: Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+* https://creativecommons.org/licenses/by-nc-sa/4.0/
+*/
+
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -6,7 +22,8 @@
 #include "driver/gpio.h"
 #include <string.h>
 
-#define BLINK_GPIO 2
+#include "CommandConsole.h"
+#include "Hartbeat.h"
 
 
 /*
@@ -27,76 +44,14 @@ void hello_task(void *pvParameter)
 	    vTaskDelay(2000 / portTICK_PERIOD_MS);
 	}
 }
-void blinky(void *pvParameter)
-{
-    //gpio_pad_select_gpio(BLINK_GPIO);
-    /* Set the GPIO as a push/pull output */
-    // Configure the GPIO pin
-    gpio_reset_pin(BLINK_GPIO);
-    gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
-    while(1) {
-        /* Blink off (output low) */
-        //printf("LED OFF\n");
-        gpio_set_level(BLINK_GPIO, 0);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        /* Blink on (output high) */
-        //printf("LED ON\n");
-        gpio_set_level(BLINK_GPIO, 1);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-}
 
-#define TASK_NAME_LEN 16
-char ptrTaskList[1024] = {0}; // Buffer to hold the task list
-
-void print_menu()
-{
-    printf("******************************************\n");
-    printf("Press 't' --> task-stats: Displays a table showing the state of each FreeRTOS task\n");
-    printf("Press 'r' --> run-time-stats: Displays a table showing how much processing time each FreeRTOS task has used\n");
-    printf("******************************************\n");
-}
-
-void monitor_task(void *pvParameter)
-{
-    print_menu();
-    while(1){
-        char c = getchar();
-        switch (c)
-        {
-        case 't':
-            vTaskList(ptrTaskList);
-            printf("******************************************\n");
-            printf("Task          State   Prio    Stack    Num\n"); 
-            printf("******************************************\n");
-            printf(ptrTaskList);
-            printf("******************************************\n");
-            print_menu();
-            break;
-        case 'r':
-            vTaskGetRunTimeStats(ptrTaskList);
-            printf("******************************************\n");
-            printf("Task            Abs Time(ms)    Time(ms)\n");
-            printf("******************************************\n");
-            printf(ptrTaskList);
-            printf("******************************************\n");
-            print_menu();
-            break;
-        case 0x0a: // Enter key
-            print_menu();
-        break;
-        default:
-            break;
-        }
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-}
 
 void app_main()
 {
+    startHartbeatTask();
+    startCommandConsoleTask();
     xTaskCreate(&hello_task, "hello_task", 2048, NULL, 5, NULL);
-    xTaskCreate(&blinky, "blinky", 2048,NULL,5,NULL );
-    xTaskCreate(&monitor_task, "monitor_task", 2048,NULL,5,NULL );
+
     while(1)
     {
         // The main task does nothing, just waits
